@@ -8,7 +8,7 @@ Case de gestão de atividades que combina **Microsoft Planner, Microsoft Graph, 
 
 Consolidar atividades de Operações e Governança, apresentar backlog e entregas de forma clara e permitir perguntas sobre o contexto analisado. A solução também oferece detalhamento de tarefas e checklists.
 
-O autor relata a construção do painel e seu aproveitamento em uma automação de relatórios. O compartilhamento é da fonte de dados e do processo de gestão; não foi identificada uma dependência obrigatória do n8n em relação ao dataset do Power BI.
+Desenvolvi o painel e aproveitei a mesma fonte de dados e o processo de gestão em uma automação de relatórios. O compartilhamento é da fonte de dados e do processo de gestão; não foi identificada uma dependência obrigatória do n8n em relação ao dataset do Power BI.
 
 ## Arquitetura
 
@@ -49,7 +49,7 @@ O caminho Gemini documenta a implementação histórica. A chave real foi retira
 
 O inventário do relatório identificou oito visuais HTML Content, um gráfico de rosca nativo, tabela/matriz, segmentadores, imagem e formas. Portanto, este case tem **interface majoritariamente personalizada com HTML**, e não um relatório integralmente HTML.
 
-As capturas fornecidas pelo autor demonstram a experiência histórica, mas não foram copiadas para o repositório porque contêm solicitações e informações internas.
+As capturas do painel demonstram a experiência que desenvolvi, mas não incluí as versões originais no repositório porque contêm solicitações e informações internas.
 
 ## Indicadores
 
