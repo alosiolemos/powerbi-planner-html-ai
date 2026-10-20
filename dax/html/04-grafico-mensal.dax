@@ -1,0 +1,222 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Grafico_Mensal_HTML =
+// GRAFICO_MENSAL_HTML
+// RESUMO: Gráfico mensal premium em HTML para Power BI exibindo indicadores dinâmicos por mês utilizando HTML Content Visual. O visual suporta alternância por slicer entre Total, Em andamento, Não iniciado, Concluídas e Taxa de Conclusão mantendo responsividade, largura proporcional automática, barras dinâmicas e compatibilidade total com renderização HTML no Power BI.
+// IMPORTANTE: O gráfico utiliza os últimos 12 meses com movimentação. Valores zerados são removidos automaticamente. FORMAT é utilizado apenas para exibição visual de percentuais e números.
+// PARA TESTE: Substituir variáveis pelos números desejados e caso tenha duvidas, sugiro utilizar sua AI de preferência para correções e inclusões.
+
+
+// NOME DO INDICADOR SELECIONADO NO SLICER
+VAR IndicadorNome =
+    SELECTEDVALUE(Menu_Status[Indicador], "Concluídas")
+
+// TITULO DINÂMICO DO GRÁFICO
+VAR TituloGrafico =
+    "ATIVIDADES " & UPPER(IndicadorNome) & " POR MÊS"
+
+// SUBTITULO PADRÃO
+VAR Subtitulo =
+    "Últimos 12 meses com movimentação."
+
+// ÚLTIMOS 12 MESES MAIS RECENTES
+VAR Base12 =
+TOPN(
+    12,
+    ADDCOLUMNS(
+        SUMMARIZE(
+            Calendario,
+            Calendario[Ano&Mês_Abreviado],
+            Calendario[NºAno&Mês]
+        ),
+        "Valor", [Indicador Selecionado]
+    ),
+    Calendario[NºAno&Mês], DESC
+)
+
+// REMOVE MESES SEM VALOR
+VAR Base =
+FILTER(
+    Base12,
+    [Valor] > 0
+)
+
+// ORDENA DO MAIS ANTIGO PARA O MAIS RECENTE
+VAR BaseAsc =
+TOPN(
+    12,
+    Base,
+    Calendario[NºAno&Mês], ASC
+)
+
+// MAIOR VALOR UTILIZADO PARA ESCALA DAS BARRAS
+VAR MaxValor =
+MAXX(BaseAsc,[Valor])
+
+// QUANTIDADE TOTAL DE MESES EXIBIDOS
+VAR QtdeMeses =
+COUNTROWS(BaseAsc)
+
+// LARGURA DINÂMICA DA COLUNA
+// AJUSTA AUTOMATICAMENTE CONFORME A QUANTIDADE DE MESES
+VAR LarguraColuna =
+SWITCH(
+    TRUE(),
+    QtdeMeses <= 6, 102,
+    QtdeMeses <= 8, 88,
+    QtdeMeses <= 10, 76,
+    68
+)
+
+// LARGURA DINÂMICA DAS BARRAS
+VAR LarguraBarra =
+SWITCH(
+    TRUE(),
+    QtdeMeses <= 6, 60,
+    QtdeMeses <= 8, 52,
+    QtdeMeses <= 10, 44,
+    36
+)
+
+// CONSTRUÇÃO DAS COLUNAS DO GRÁFICO
+VAR Linhas =
+CONCATENATEX(
+
+    BaseAsc,
+
+    // NOME DO MÊS
+    VAR Mes =
+        Calendario[Ano&Mês_Abreviado]
+
+    // VALOR DO INDICADOR
+    VAR Valor =
+        [Valor]
+
+    // ALTURA PROPORCIONAL DA BARRA
+    VAR Altura =
+        ROUND(
+            DIVIDE(Valor, MaxValor, 0) * 135,
+            0
+        )
+
+    // ALTURA MÍNIMA DA BARRA
+    VAR AlturaFinal =
+        MAX(18, Altura)
+
+RETURN
+
+"
+<div style='
+width:" & LarguraColuna & "px;
+height:205px;
+position:relative;
+text-align:center;
+color:white;
+display:inline-block;
+'>
+
+<!-- ROTULO SUPERIOR -->
+<div style='
+position:absolute;
+bottom:" & AlturaFinal + 28 & "px;
+left:50%;
+transform:translateX(-50%);
+width:100%;
+font-size:12px;
+font-weight:700;
+'>
+
+" &
+IF(
+    IndicadorNome = "Taxa de Conclusão",
+    FORMAT(Valor, "0.0%"),
+    FORMAT(Valor, "0")
+)
+& "
+
+</div>
+
+<!-- BARRA -->
+<div style='
+position:absolute;
+bottom:26px;
+left:50%;
+transform:translateX(-50%);
+width:" & LarguraBarra & "px;
+height:" & AlturaFinal & "px;
+background:linear-gradient(180deg,#34d399,#08DE17);
+border-radius:6px 6px 2px 2px;
+box-shadow:0 4px 18px rgba(0,0,0,.16);
+'></div>
+
+<!-- MÊS -->
+<div style='
+position:absolute;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+width:100%;
+font-size:11px;
+font-weight:700;
+'>
+" & Mes & "
+</div>
+
+</div>
+",
+
+"",
+Calendario[NºAno&Mês],
+ASC
+)
+
+RETURN
+
+"
+<div style='
+font-family:Segoe UI,sans-serif;
+width:100%;
+height:303px;
+padding:14px 16px 10px 16px;
+border-radius:24px;
+background:linear-gradient(135deg,#2B838C,#081120);
+color:white;
+box-sizing:border-box;
+overflow:hidden;
+'>
+
+<!-- TITULO PRINCIPAL -->
+<div style='
+font-size:18px;
+font-weight:300;
+letter-spacing:.5px;
+line-height:1;
+margin-bottom:4px;
+'>
+" & TituloGrafico & "
+</div>
+
+<!-- SUBTITULO -->
+<div style='
+font-size:11px;
+opacity:.78;
+margin-bottom:8px;
+'>
+" & Subtitulo & "
+</div>
+
+<!-- AREA DO GRAFICO -->
+<div style='
+height:215px;
+display:flex;
+justify-content:space-between;
+align-items:flex-end;
+gap:4px;
+'>
+
+" & Linhas & "
+
+</div>
+
+</div>
+"

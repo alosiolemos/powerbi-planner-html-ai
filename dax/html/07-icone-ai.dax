@@ -1,0 +1,20 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Icone_INDEX_AI =
+"
+<div style='
+    width:30px;
+    height:30px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#081120,#2B838C); 
+    color:white;
+    font-size:12px;
+    font-weight:bold;
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+'>
+    ✦
+</div>
+"

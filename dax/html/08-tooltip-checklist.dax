@@ -1,0 +1,325 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Tooltip Checklist HTML =
+VAR TituloCard =
+    SELECTEDVALUE(
+        'tb.UNIFICADA CARDS'[title]
+    )
+
+VAR BucketName =
+    SELECTEDVALUE(
+        'tb.UNIFICADA CARDS'[Bucket_Name]
+    )
+
+VAR ChecklistValidos =
+    FILTER(
+        'tb.UNIFICADA CHECKLIST',
+        NOT ISBLANK(
+            'tb.UNIFICADA CHECKLIST'[Checklist.title]
+        )
+            &&
+        TRIM(
+            'tb.UNIFICADA CHECKLIST'[Checklist.title]
+        ) <> ""
+    )
+
+VAR Quantidade =
+    COUNTROWS(
+        ChecklistValidos
+    )
+
+VAR QuantidadeConcluida =
+    COUNTROWS(
+        FILTER(
+            ChecklistValidos,
+            'tb.UNIFICADA CHECKLIST'[Checklist.isChecked] = "Concluído"
+        )
+    )
+
+VAR PercentualConclusao =
+    DIVIDE(
+        QuantidadeConcluida,
+        Quantidade,
+        0
+    )
+
+VAR CorPercentual =
+    SWITCH(
+        TRUE(),
+        PercentualConclusao = 1, "#38BDF8",
+        PercentualConclusao < 0.1, "#EF4444",
+        PercentualConclusao < 0.5, "#D97706",
+        PercentualConclusao < 0.8, "#F59E0B",
+        "#22C55E"
+    )
+
+VAR CorStatus =
+    SWITCH(
+        TRUE(),
+        CONTAINSSTRING(LOWER(BucketName), "conclu"), "#38BDF8",
+        CONTAINSSTRING(LOWER(BucketName), "andamento"), "#F59E0B",
+        CONTAINSSTRING(LOWER(BucketName), "aguard"), "#D97706",
+        CONTAINSSTRING(LOWER(BucketName), "não inici"), "#94A3B8",
+        CONTAINSSTRING(LOWER(BucketName), "nao inici"), "#94A3B8",
+        "#CBD5E1"
+    )
+
+VAR IconePercentual =
+    "●"
+
+VAR FonteLinha =
+    SWITCH(
+        TRUE(),
+        Quantidade <= 12, "11.5px",
+        Quantidade <= 16, "11px",
+        Quantidade <= 20, "10.5px",
+        "10px"
+    )
+
+VAR Linhas =
+    CONCATENATEX(
+        ChecklistValidos,
+
+        "
+        <div style='
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+            min-height:0;
+            padding:0 8px;
+            box-sizing:border-box;
+            border-bottom:1px solid #E5E7EB;
+            font-family:Segoe UI;
+            font-size:" & FonteLinha & ";
+            line-height:1.05;
+        '>
+
+            <div style='
+                flex:1;
+                min-width:0;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+            '>"
+                & 'tb.UNIFICADA CHECKLIST'[Checklist.title] &
+            "</div>
+
+            <div style='
+                flex-shrink:0;
+                white-space:nowrap;
+                font-weight:600;
+                color:"
+                &
+                SWITCH(
+                    'tb.UNIFICADA CHECKLIST'[Checklist.isChecked],
+                    "Concluído", "#16A34A",
+                    "Em andamento", "#F59E0B",
+                    "#64748B"
+                )
+                &
+                ";
+            '>"
+                & 'tb.UNIFICADA CHECKLIST'[Checklist.isChecked] &
+            "</div>
+
+        </div>
+        ",
+
+        "",
+
+        SWITCH(
+            'tb.UNIFICADA CHECKLIST'[Checklist.isChecked],
+            "Em andamento", 1,
+            "Concluído", 2,
+            3
+        ),
+        ASC,
+
+        'tb.UNIFICADA CHECKLIST'[Checklist.orderHint],
+        ASC
+    )
+
+VAR ConteudoChecklist =
+    IF(
+        Quantidade = 0,
+
+        "
+        <div style='
+            flex:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:24px;
+            font-family:Segoe UI;
+            text-align:center;
+        '>
+
+            <div style='
+                max-width:420px;
+                font-size:14px;
+                line-height:1.45;
+                font-weight:600;
+                color:#475569;
+            '>
+                Até o presente momento, esta atividade não possui checklist atrelado.
+                <br><br>
+
+                <span style='
+                    font-size:12px;
+                    font-weight:400;
+                    color:#64748B;
+                '>
+                    A atividade poderá ser detalhada e tratada nas próximas etapas do processo.
+                </span>
+
+            </div>
+
+        </div>
+        ",
+
+        "
+        <div style='
+            flex:1;
+            min-height:0;
+            display:grid;
+            grid-template-rows:repeat(" & Quantidade & ", minmax(0, 1fr));
+            width:100%;
+            overflow:hidden;
+        '>
+
+            " & Linhas & "
+
+        </div>
+        "
+    )
+
+VAR CabecalhoStatus =
+    IF(
+        NOT ISBLANK(BucketName),
+
+        "
+        <div style='
+            display:flex;
+            align-items:center;
+            gap:5px;
+            margin-top:4px;
+            font-size:10px;
+            line-height:12px;
+        '>
+
+            <span style='
+                color:#CBD5E1;
+                font-weight:600;
+            '>
+                Status:
+            </span>
+
+            <span style='
+                color:" & CorStatus & ";
+                font-weight:700;
+            '>"
+                & BucketName &
+            "</span>
+
+        </div>
+        ",
+
+        ""
+    )
+
+VAR CabecalhoIndicador =
+    IF(
+        Quantidade = 0,
+
+        "",
+
+        "
+        <div style='
+            display:flex;
+            align-items:center;
+            justify-content:flex-start;
+            margin-top:3px;
+            font-size:10px;
+            line-height:12px;
+            font-weight:700;
+        '>
+
+            <span style='
+                color:" & CorPercentual & ";
+                margin-right:4px;
+            '>"
+                & IconePercentual &
+            "</span>
+
+            <span style='
+                color:" & CorPercentual & ";
+            '>"
+                & FORMAT(PercentualConclusao, "0.0%") &
+            "</span>
+
+            <span style='
+                margin-left:7px;
+                color:#CBD5E1;
+                font-size:9.5px;
+                font-weight:600;
+            '>"
+                & QuantidadeConcluida
+                & " / "
+                & Quantidade
+                & " atividades"
+                &
+            "</span>
+
+        </div>
+        "
+    )
+
+RETURN
+"
+<div style='
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    box-sizing:border-box;
+    overflow:hidden;
+    background:#FFFFFF;
+    font-family:Segoe UI;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+'>
+
+    <div style='
+        flex:0 0 68px;
+        padding:7px 9px;
+        box-sizing:border-box;
+        background:#081120;
+        border-bottom:1px solid #CBD5E1;
+    '>
+
+        <div style='
+            font-size:13px;
+            font-weight:700;
+            line-height:15px;
+            color:#FFFFFF;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        '>"
+            & TituloCard &
+        "</div>
+
+        " & CabecalhoStatus & "
+
+        " & CabecalhoIndicador & "
+
+    </div>
+
+    " & ConteudoChecklist & "
+
+</div>
+"

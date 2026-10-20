@@ -1,0 +1,5 @@
+* text=auto
+*.md text eol=lf
+*.dax text eol=lf
+*.pq text eol=lf
+*.pq linguist-detectable=false

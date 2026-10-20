@@ -1,0 +1,949 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Gemini_Operations_AI =
+VAR Total = FORMAT([Total Atividades],"0")
+VAR Conclusao = FORMAT([% Conclusão],"0.0%")
+VAR Concluidas =FORMAT([Atividades Concluídas],"0")
+VAR Backlog =FORMAT([Backlog Aberto],"0")
+VAR ClienteInterno =FORMAT([Cliente Interno],"0")
+VAR ClienteExterno =FORMAT([Cliente Externo],"0")
+VAR Aging =  FORMAT([Conclusão (dias)],"0")
+VAR IntConcluidas =
+FORMAT(
+    CALCULATE(
+        [Atividades Concluídas],
+        'tb.UNIFICADA CARDS'[Categoria] = "Cliente Interno"
+    ),
+"0")
+VAR ExtConcluidas =
+FORMAT(
+    CALCULATE(
+        [Atividades Concluídas],
+        'tb.UNIFICADA CARDS'[Categoria] = "Cliente externo"
+    ),
+"0")
+/* =====================================================
+TOP ATIVIDADES PARA IA
+===================================================== */
+VAR TopAtividades =
+CONCATENATEX(
+    TOPN(
+        200,
+        TOPN(
+            200,
+            'tb.UNIFICADA CARDS',
+            'tb.UNIFICADA CARDS'[createdDateTime], DESC
+        ),
+        'tb.UNIFICADA CARDS'[createdDateTime], DESC
+    ),
+    "Titulo: " & 'tb.UNIFICADA CARDS'[title] &
+    " | Board: " & 'tb.UNIFICADA CARDS'[Board] &
+    " | Solicitante: " & 'tb.UNIFICADA CARDS'[Solicitante] &
+    " | Status: " & 'tb.UNIFICADA CARDS'[percentComplete] &
+    " | Categoria: " & 'tb.UNIFICADA CARDS'[Categoria] &
+    " | Tipo: " & 'tb.UNIFICADA CARDS'[Tipo] &
+    " | Frente origem da Demanda: " & 'tb.UNIFICADA CARDS'[Frente de Demanda 2] &
+    " | createdDateTime: " & 'tb.UNIFICADA CARDS'[Data - createdDateTime]&
+    " | completedDateTime"& 'tb.UNIFICADA CARDS'[Data - completedDateTime]& 
+    " | Detalhe da Tarefa:"&
+    " | Cobertura: " & 'tb.UNIFICADA CARDS'[cob]& 
+    
+LEFT(
+    TRIM(
+        SUBSTITUTE(
+            SUBSTITUTE(
+                SUBSTITUTE(
+                    'tb.UNIFICADA CARDS'[tasks_details],
+                    UNICHAR(13), " "
+                ),
+                UNICHAR(10), " "
+            ),
+            UNICHAR(9), " "
+        )
+    ),
+    250
+))
+VAR historico =
+
+TOPN(
+    12,
+    ADDCOLUMNS(
+        SUMMARIZE(
+            Calendario,
+            Calendario[Ano&Mês_Abreviado],
+            Calendario[NºAno&Mês]
+        ),
+        "Total de Atividades", [Total Atividades],
+        "Atividades em Andamento", [Atividades Em Andamento],
+        "Atividades Não Inciadas", [Atividades Não Iniciadas],
+        "Atividades Concluídas", [Atividades Concluídas],
+        "Atividades Cliente interno", [Cliente Interno],
+        "Atividades Cliente externo", [Cliente Externo],
+        "% BackLog", FORMAT([% Backlog],"##%"),
+        "% Não iniciadas", FORMAT([% Não Iniciadas],"##%"),
+        "% Andamento", FORMAT([% Em Andamento],"##%"),
+        "% Conclusão", FORMAT([% Conclusão],"##%"),
+        "Conclusão em dias", [Conclusão (dias) f]
+    ),
+    Calendario[NºAno&Mês], DESC
+)
+
+VAR HistoricoTexto =
+
+CONCATENATEX(
+    historico,
+    Calendario[Ano&Mês_Abreviado] &
+    " | TotalAtividades: " & [Total de Atividades] &
+    " | Concluídas: " & [Atividades Concluídas] &
+    " | Andamento: " & [Atividades em Andamento] &
+    " | NaoIniciadas: " & [Atividades Não Inciadas] &
+    " | ClienteInterno: " & [Atividades Cliente interno] &
+    " | ClienteExterno: " & [Atividades Cliente externo] &
+    " | PctConclusao: " & [% Conclusão] &
+    " | PctAndamento: " & [% Andamento] &
+    " | PctNaoIniciadas: " & [% Não iniciadas] &
+    " | PctBacklog: " & [% BackLog] &
+    " | Aging: " & [Conclusão em dias],
+    UNICHAR(10)
+)
+/* =====================================================
+CONTEXTO GEMINI
+===================================================== */
+VAR Contexto =
+"
+=== RESUMO EXECUTIVO ===
+    Total de Atividades: " & Total & "
+    Taxa de Conclusão: " & Conclusao & "
+    Atividades Concluídas: " & Concluidas & "
+    Backlog Aberto: " & Backlog & "
+    Cliente Interno: " & ClienteInterno & "
+    Cliente Externo: " & ClienteExterno & "
+    Aging Médio: " & Aging & " dias
+    Concluídas Internas: " & IntConcluidas & "
+    Concluídas Externas: " & ExtConcluidas & "
+    === HISTÓRICO DOS ÚLTIMOS 12 MESES ===
+
+" & HistoricoTexto & "
+=== DETALHAMENTO DAS ATIVIDADES ===
+
+" & TopAtividades
+
+VAR ContextoSeguro =
+SUBSTITUTE(
+    SUBSTITUTE(
+        SUBSTITUTE(
+            SUBSTITUTE(
+                SUBSTITUTE(
+                    SUBSTITUTE(
+                        SUBSTITUTE(
+                            Contexto,
+                            "`","'"
+                        ),
+                        "${","$ {"
+                    ),
+                    UNICHAR(92),"/"
+                ),
+                """","'"
+            ),
+            "</script>",""
+        ),
+        UNICHAR(13)," "
+    ),
+    UNICHAR(10)," "
+)
+
+RETURN
+" 
+ <div class='gemini-app'>
+
+    <!-- BACKGROUND -->
+
+    <div class='bg-glow glow-1'></div>
+    <div class='bg-glow glow-2'></div> 
+
+    <!-- HEADER -->
+
+    <div class='topbar'>
+
+        <div class='brand-area'>
+
+            <div class='brand-icon'>
+                ✦
+            </div>
+
+            <div>
+
+                <div class='brand-title'>
+                    Analyst Executive AI
+                </div>
+
+                <div class='brand-subtitle'>
+                    Power BI Intelligent Analytics Tasks
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class='close-chat'>
+            ×
+        </div>
+
+    </div>
+
+    <!-- CHAT -->
+
+    <div id='chatArea' class='chat-area'>
+
+        <div class='welcome-card'>
+            <div class='welcome-badge'>
+                DEMO AI
+            </div>
+            <div class='welcome-text'>
+                Tenho acesso às últimas 100 atividades e aos indicadores do contexto filtrado e histórico dos ultimos 12 meses. Pergunte sobre backlog, produtividade, gargalos, planos de ação, causa raiz, motivos de recorrências e andamento das demandas.
+            </div>
+            <div class='welcome-note'>
+                Observação: Não armazeno contexto. Cada solicitação é analisada de acordo com filtros atuais do painel.
+            </div>
+            <div class='quick-grid'>
+            </div>
+        </div>
+    </div>
+
+    <!-- INPUT -->
+
+    <div class='input-wrapper'>
+
+        <div class='input-box'>
+
+            <textarea
+                id='questionInput'
+                placeholder='Como posso te ajudar hoje?'
+            ></textarea>
+
+            <button id='sendButton'>
+
+                <span>
+                    ✦
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+/* =========================
+   BASE
+========================= */
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    font-family:Segoe UI;
+}
+
+/* =========================
+   APP
+========================= */
+
+.gemini-app{
+    width:100%;
+    height:100vh;
+    background:
+    linear-gradient(
+        180deg,
+        #2B838C 0%,
+        #081120 100%
+    ); 
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    color:white;
+    border-radius:18px;     
+    box-shadow: 0 20px 80px rgba(0,0,0,.35);
+}
+
+/* =========================
+   GLOW
+========================= */
+
+.bg-glow{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(100px);
+    opacity:.18;
+}
+
+.glow-1{
+    width:300px;
+    height:300px;
+    background:#7C3AED;
+    top:-80px;
+    left:-80px;
+}
+
+.glow-2{
+    width:260px;
+    height:260px;
+    background:#2563EB;
+    bottom:-100px;
+    right:-100px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.topbar{
+    height:50px;
+    min-height:50px;
+    padding:0 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+    z-index:2;
+}
+
+.brand-area{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.brand-icon{
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    background:
+    linear-gradient(
+        135deg,
+        #2B838C,
+        #BFBFBF
+    );
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:bold;
+    color:white;
+}
+
+.brand-title{
+    font-size:12px;
+    font-weight:600;
+}
+
+.brand-subtitle{
+    font-size:10px;
+    color:#F2F2F2;
+    margin-top:3px;
+}
+.close-chat{
+
+    width:24px;
+
+    height:24px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:rgba(255,255,255,.55);
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    border-radius:6px;
+
+    transition:.2s;
+}
+
+.close-chat:hover{
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+}
+.status-pill{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+    padding:10px 16px;
+    border-radius:999px;
+    font-size:12px;
+    color:#A5F3FC;
+    backdrop-filter:blur(10px);
+}
+
+/* =========================
+   CHAT
+========================= */
+
+.chat-area{
+    flex:1;
+    overflow-y:auto;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    z-index:2;
+    max-width:none;
+    width:100%;
+    margin:auto;
+}
+
+/* =========================
+   WELCOME
+========================= */
+
+.welcome-card{
+    width:100%;
+    max-width:900px;
+    margin:0;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    padding:10px 24px;
+    backdrop-filter:blur(12px);
+    box-shadow: 0 20px 80px rgba(0,0,0,.35);
+}
+
+.welcome-badge{
+    display:inline-flex;
+    padding:6px 10px;
+    border-radius:600px;
+    background:rgba(124,58,237,.18);
+    color:#F2F2F2;
+    font-size:10px;
+    letter-spacing:1px;
+    margin-bottom:8px;
+}
+
+.welcome-title{
+    font-size:40px;
+    font-weight:700;
+    line-height:1.1;
+    max-width:620px;
+}
+
+.welcome-text{
+    margin-top:4px;
+    color:#F2F2F2;
+    font-size:12px;
+    line-height:1.1;
+    max-width:none;
+}
+.welcome-note{
+
+    margin-top:14px;
+    font-size:12px;
+    color:#D9D9D9;
+    line-height:1.2;
+    opacity:.80;
+}
+/* =========================
+   QUICK CARDS
+========================= */
+
+.quick-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:10px;
+}
+
+.quick-card{
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:22px;
+    padding:24px;
+    backdrop-filter:blur(10px);
+}
+
+.quick-title{
+    font-size:12px;
+    color:#94A3B8;
+    margin-bottom:10px;
+}
+
+.quick-value{
+    font-size:28px;
+    font-weight:700;
+}
+
+.positive{
+    color:#4ADE80;
+}
+
+/* =========================
+   USER MESSAGE
+========================= */
+
+.user-message{
+    align-self:flex-end;
+    max-width:60%;;
+     background:
+    linear-gradient(
+        135deg,
+        #2B838C,
+        #3B9CA6
+    );
+    color:white;
+    padding:14px 18px;
+    border-radius:18px 18px 4px 18px;
+    box-shadow:
+    0 8px 20px rgba(109,74,255,.20);
+    line-height:1.6;
+    font-size:14px;
+}
+
+/* =========================
+   AI MESSAGE
+========================= */
+
+.ai-message{
+    align-self:flex-start;
+    max-width:92%;
+    background:rgba(8,17,32,.65);
+    border:1px solid rgba(255,255,255,.08);
+    padding:18px;
+    border-radius:18px 18px 18px 6px;
+    backdrop-filter:blur(18px);
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+}
+
+.ai-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+}
+
+.ai-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#60A5FA;
+    box-shadow:
+    0 0 14px #60A5FA;
+}
+
+.ai-name{
+    font-size:11px;
+    font-weight:600;
+    color:#A5B4FC;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+}
+
+.ai-content{
+    max-height:420px;
+    overflow-y:auto;
+    padding-right:6px;
+    line-height:1.8;
+    color:#E2E8F0;
+    font-size:14px;
+}
+
+.ai-content,
+.ai-content *,
+.ai-content h1,
+.ai-content h2,
+.ai-content h3,
+.ai-content p,
+.ai-content li,
+.ai-content span,
+.ai-content div,
+.ai-content ul{
+    color:#FFFFFF !important;
+}
+
+
+/* =========================
+   INPUT
+========================= */
+
+.input-wrapper{
+    padding:8px;
+    z-index:2;
+}
+
+.input-box{
+    max-width:none;
+    margin:auto;
+    display:flex;
+    gap:10px;
+    align-items:flex-end;
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    padding:10px;
+    backdrop-filter:blur(20px);
+    color:#F2F2F2;
+}
+
+textarea{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color:white;
+    font-size:15px;
+    min-height:52px;
+    max-height:180px;
+    font-family:Segoe UI;
+}
+
+textarea::placeholder{
+    color:#94A3B8;
+}
+
+button{
+    width:38px;
+    height:38px;
+    min-width:38px;
+    border:none;
+    border-radius:12px;
+
+     background:
+    linear-gradient(
+        135deg,
+        #2B838C,
+        #BFBFBF
+    );
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* =========================
+   SCROLL
+========================= */
+
+.chat-area::-webkit-scrollbar{
+    width:6px;
+}
+
+.chat-area::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.15);
+    border-radius:10px;
+}
+
+.ai-content::-webkit-scrollbar{
+    width:4px;
+}
+
+.ai-content::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.18);
+    border-radius:10px;
+}
+
+/* =========================
+   THINKING
+========================= */
+
+#loading{
+    width:auto !important;
+    min-width:120px;
+    max-width:160px !important;
+    padding:12px 16px;
+    opacity:.9;
+}
+
+.thinking-text{
+    color:#CBD5E1;
+    font-size:14px;
+    opacity:.85;
+    padding-top:4px;
+}
+
+</style>
+
+<script>
+
+setTimeout(function(){
+   
+    const chat =
+        document.getElementById('chatArea');
+
+    const button =
+        document.getElementById('sendButton');
+
+    const input =
+        document.getElementById('questionInput');
+
+    const context =
+`" & ContextoSeguro & "`;
+
+
+/* =========================
+   USER MESSAGE
+========================= */
+
+function addUserMessage(text){
+
+    const div =
+        document.createElement('div');
+
+    div.className =
+        'user-message';
+
+    div.innerHTML =
+        text;
+
+    chat.appendChild(div);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+}
+
+
+/* =========================
+   AI MESSAGE
+========================= */
+
+function addAiMessage(html){
+
+    const div =
+        document.createElement('div');
+
+    div.className =
+        'ai-message';
+
+    div.innerHTML =
+`
+<div class='ai-header'>
+
+    <div class='ai-dot'></div>
+
+    <div class='ai-name'>
+        DEMO AI
+    </div>
+
+</div>
+
+
+<div class='ai-content'>
+${html}
+</div>
+`;
+
+    chat.appendChild(div);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+}
+
+
+/* =========================
+   LOADING
+========================= */
+
+function addLoading(){
+
+    const div =
+        document.createElement('div');
+
+    div.className =
+        'ai-message';
+
+    div.id =
+        'loading';
+
+    div.innerHTML =
+`
+<div class='thinking-text'>
+    Pensando...
+</div>
+`;
+
+    chat.appendChild(div);
+
+    chat.scrollTop =
+        chat.scrollHeight;
+}
+
+function removeLoading(){
+
+    const loading =
+        document.getElementById('loading');
+
+    if(loading){
+        loading.remove();
+    }
+}
+
+
+/* =========================
+   SEND TESTE
+========================= */
+
+button.addEventListener(
+'click',
+async function(){
+
+    const question =
+        input.value.trim();
+
+    if(!question){
+        return;
+    }
+
+    addUserMessage(question);
+
+    input.value = '';
+
+    addLoading();
+
+    try{
+
+        const prompt = `
+        Você é um analista executivo especialista em gestão de atividades, produtividade, backlog e identificação de gargalos operacionais.
+        Seu objetivo é responder exatamente o que o usuário perguntou, utilizando os dados disponíveis.
+        REGRAS:
+        - Responda apenas o que foi solicitado.
+        - Não gere resumos executivos automaticamente.
+        - Não gere diagnósticos automaticamente.
+        - Não gere planos de ação automaticamente.
+        - Não invente seções.
+        - Não utilize modelos fixos de resposta.
+        - Evite o uso de ** pois não fica legivel
+
+        Quando a pergunta for simples, responda de forma simples.
+
+        Exemplos:
+        Pergunta: Quais são as últimas atividades?
+        Resposta: Lista direta das atividades.
+        Pergunta: Quem tem mais atividades abertas?
+        Resposta: Nome e quantidade.
+        Pergunta: Existe algum gargalo?
+        Resposta: Análise objetiva dos gargalos encontrados.
+        Pergunta: Analise os principais problemas
+        Resposta: Pode gerar uma análise mais detalhada.
+        Pergunta: Qual plano de ação?         
+        Resposta: Pode gerar uma análise mais detalhada.
+
+        FORMATAÇÃO:
+
+        - Utilize HTML.
+        - Não utilize Markdown.
+        - Não utilize H1.
+        - Utilize H3 apenas quando realmente necessário.
+        - Utilize listas quando fizer sentido.
+        - Seja objetivo.
+        - Evite textos longos.
+        - Evite introduções desnecessárias.
+
+        Tags permitidas:
+
+        <h3>
+        <p>
+        <ul>
+        <li>
+        <span>
+
+        Toda resposta deve ser legível em fundo escuro.
+
+        DADOS:
+        ${context}
+
+        PERGUNTA:
+        ${question}
+        `;
+
+        const response =
+        await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=CONFIGURE_SECRET_PRIVATELY',
+        {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify({
+                contents:[
+                    {
+                        parts:[
+                            {
+                                text: prompt
+                            }
+                        ]
+                    }
+                ]
+            })
+        });
+
+        const data =
+            await response.json();
+
+        removeLoading();
+
+        const text =
+            data?.candidates?.[0]
+            ?.content?.parts?.[0]
+            ?.text
+            || '<p>Sem resposta.</p>';
+
+        addAiMessage(text);
+
+    }
+    catch(e){
+
+        removeLoading();
+
+        addAiMessage(
+            '<p>Erro ao conectar Gemini API.</p>'
+        );
+
+        console.log(e);
+
+    }
+
+});
+
+
+/* =========================
+   ENTER
+========================= */
+
+input.addEventListener(
+'keydown',
+function(e){
+
+    if(
+        e.key === 'Enter' &&
+        !e.shiftKey
+    ){
+
+        e.preventDefault();
+
+        button.click();
+
+        return false;
+    }
+
+});
+
+},1000);
+
+</script>
+
+"

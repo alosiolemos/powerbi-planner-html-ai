@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Card_HTML",
+    "path": "dax/html/01-card.dax",
+    "characters": 3753
+  },
+  {
+    "name": "Tabela_HTML_Pro",
+    "path": "dax/html/02-tabela.dax",
+    "characters": 3720
+  },
+  {
+    "name": "Header_HTML_Pro",
+    "path": "dax/html/03-header.dax",
+    "characters": 497
+  },
+  {
+    "name": "Grafico_Mensal_HTML",
+    "path": "dax/html/04-grafico-mensal.dax",
+    "characters": 4081
+  },
+  {
+    "name": "Titulo_HTML",
+    "path": "dax/html/05-titulo.dax",
+    "characters": 1668
+  },
+  {
+    "name": "Gemini_Operations_AI",
+    "path": "dax/html/06-gemini-operations-ai.dax",
+    "characters": 18546
+  },
+  {
+    "name": "Icone_INDEX_AI",
+    "path": "dax/html/07-icone-ai.dax",
+    "characters": 318
+  },
+  {
+    "name": "Tooltip Checklist HTML",
+    "path": "dax/html/08-tooltip-checklist.dax",
+    "characters": 7059
+  }
+]

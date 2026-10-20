@@ -1,0 +1,178 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Tabela_HTML_Pro =
+VAR Linhas =
+CONCATENATEX(
+
+TOPN(
+    [Total Atividades],
+    'tb.UNIFICADA CARDS',
+    'tb.UNIFICADA CARDS'[completedDateTime], DESC
+),
+
+VAR StatusTexto = 'tb.UNIFICADA CARDS'[percentComplete]
+
+VAR CorStatus =
+SWITCH(
+    TRUE(),
+    StatusTexto = "Concluída", "#22c55e",
+    StatusTexto = "Em andamento", "#facc15",
+    "#94a3b8"
+)
+
+VAR FundoLinha =
+IF(
+    MOD(
+        RANKX(
+            ALLSELECTED('tb.UNIFICADA CARDS'),
+            'tb.UNIFICADA CARDS'[completedDateTime],
+            ,
+            DESC
+        ),
+        2
+    ) = 0,
+    "#f8fafc",
+    "white"
+)
+
+VAR Minutos =
+DATEDIFF(
+    'tb.UNIFICADA CARDS'[createdDateTime],
+    'tb.UNIFICADA CARDS'[completedDateTime],
+    MINUTE
+)
+
+VAR Ciclo =
+IF(
+    ISBLANK('tb.UNIFICADA CARDS'[completedDateTime]),
+    "-",
+    SWITCH(
+        TRUE(),
+        Minutos < 60, Minutos & " min",
+        Minutos < 1440, FORMAT(DIVIDE(Minutos,60),"0.0") & " h",
+        FORMAT(DIVIDE(Minutos,1440),"0.0") & " d"
+    )
+)
+
+VAR DataConclusao =
+IF(
+    ISBLANK('tb.UNIFICADA CARDS'[completedDateTime]),
+    "-",
+    FORMAT('tb.UNIFICADA CARDS'[completedDateTime],"dd/MM/yy hh:mm")
+)
+
+RETURN
+
+"
+<div style='
+display:grid;
+grid-template-columns:
+2.8fr   /* Solicitação */
+.6fr   /* Board */
+.6fr    /* Prioridade */
+.9fr    /* Criação */
+.9fr    /* Conclusão */
+.9fr    /* Solicitante */
+1fr      /* Tipo */
+1fr      /* Bucket */
+.9fr     /* Status */
+.6fr      /* Categoria */
+.7fr;    /* Ciclo */
+gap:10px;
+padding:10px 14px 10px 7px;
+background:" & FundoLinha & ";
+border-bottom:1px solid #edf1f5;
+font-size:11px;
+line-height:1.3;
+align-items:center;
+min-height:40px;
+box-sizing:border-box;
+transition:all .15s ease;
+'>
+
+<!-- SOLICITAÇÃO -->
+<div style='font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[title],"") & "
+</div>
+
+<!-- BOARD -->
+<div style='font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[Board],"") & "
+</div>
+
+<!-- PRIORIDADE -->
+<div style='text-align:center;'>
+" &
+IF(
+    NOT(ISBLANK('tb.UNIFICADA CARDS'[Priorizado])),
+    'tb.UNIFICADA CARDS'[Priorizado],
+    ""
+)
+& "
+</div>
+
+<!-- CRIAÇÃO -->
+<div style='font-weight:500;color:#475569;white-space:nowrap;'>
+" & FORMAT('tb.UNIFICADA CARDS'[createdDateTime],"dd/MM/yy hh:mm") & "
+</div>
+
+<!-- CONCLUSÃO -->
+<div style='font-weight:500;color:#475569;white-space:nowrap;'>
+" & DataConclusao & "
+</div>
+
+<!-- SOLICITANTE -->
+<div style='font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[Solicitante],"") & "
+</div>
+
+<!-- TIPO -->
+<div style='font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[Tipo],"") & "
+</div>
+
+<!-- BUCKET -->
+<div style='color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[Bucket_Name],"") & "
+</div>
+
+<!-- STATUS -->
+<div style='font-weight:700;color:" & CorStatus & ";white-space:nowrap;'>
+" & COALESCE(StatusTexto,"") & "
+</div>
+
+<!-- CATEGORIA -->
+<div style='color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>
+" & COALESCE('tb.UNIFICADA CARDS'[Categoria],"") & "
+</div>
+
+<!-- CICLO -->
+<div style='text-align:center;font-weight:700;color:#0f172a;white-space:nowrap;'>
+" & Ciclo & "
+</div>
+
+</div>
+",
+
+"",
+'tb.UNIFICADA CARDS'[createdDateTime], DESC
+)
+
+RETURN
+
+"
+<div style='
+font-family:Segoe UI,sans-serif;
+width:100%;
+height:100%;
+overflow-y:auto;
+border-radius:0 0 20px 20px;
+box-shadow:0 10px 22px rgba(0,0,0,.10);
+background:white;
+border:1px solid rgba(0,0,0,.04);
+'>
+
+" & Linhas & "
+
+</div>
+"

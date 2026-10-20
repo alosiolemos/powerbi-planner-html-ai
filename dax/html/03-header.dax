@@ -1,0 +1,37 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Header_HTML_Pro =
+"
+<div style='
+font-family:Segoe UI,sans-serif;
+width:100%;
+margin:0;
+padding:0;
+overflow:hidden;
+border-radius:20px 20px 0 0;
+box-shadow:0 8px 18px rgba(0,0,0,.12);
+background:white;
+border:1px solid rgba(0,0,0,.04);
+box-sizing:border-box;
+'>
+
+<!-- TOPO -->
+<div style='
+background:linear-gradient(135deg,#2B838C,#081120);
+color:white;
+padding:12px 16px;
+font-size:18px;
+font-weight:300;
+letter-spacing:.5px;
+line-height:1;
+text-transform:uppercase;
+'>
+LISTA DE TAREFAS
+</div>
+
+
+
+</div>
+
+</div>
+"

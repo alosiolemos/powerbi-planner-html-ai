@@ -1,0 +1,290 @@
+// Medida HTML completa, com credenciais e identidade revisadas.
+// O esquema e os dados reais não são distribuídos.
+Card_HTML =
+// CARD_HTML
+// RESUMO:
+// Card executivo premium em HTML para Power BI.
+// Layout totalmente dinâmico para HTML Content Visual.
+// Estrutura responsiva sem alturas fixas internas.
+// Compatível com resize automático do visual.
+
+// =============================
+// KPIs FORMATADOS
+// =============================
+
+VAR Total =
+    FORMAT([Total Atividades],"0")
+
+VAR Conclusao =
+    FORMAT([% Conclusão],"0.0%")
+
+VAR Concluidas =
+    FORMAT([Atividades Concluídas],"0")
+
+VAR Backlog =
+    FORMAT([Backlog Aberto],"0")
+
+VAR ClienteInterno =
+    FORMAT([Cliente Interno],"0")
+
+VAR ClienteExterno =
+    FORMAT([Cliente Externo],"0")
+
+VAR Aging =
+    FORMAT([Conclusão (dias)],"0")
+
+VAR IntConcluidas =
+FORMAT(
+    CALCULATE(
+        [Atividades Concluídas],
+        'tb.UNIFICADA CARDS'[Categoria] = "Interno"
+    ),
+"0")
+
+VAR ExtConcluidas =
+FORMAT(
+    CALCULATE(
+        [Atividades Concluídas],
+        'tb.UNIFICADA CARDS'[Categoria] = "Externo"
+    ),
+"0")
+
+RETURN
+
+"
+<div style='
+
+position:absolute;
+inset:0;
+
+font-family:Segoe UI,sans-serif;
+
+padding:14px 16px 14px 16px;
+
+border-radius:24px;
+
+background:
+linear-gradient(
+135deg,
+#2B838C 0%,
+#081120 100%
+);
+
+color:white;
+
+box-sizing:border-box;
+overflow:hidden;
+
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+
+'>
+
+<!-- ========================= -->
+<!-- CABEÇALHO -->
+<!-- ========================= -->
+
+<div>
+
+<!-- TITULO -->
+<div style='
+font-size:18px;
+font-weight:300;
+letter-spacing:.5px;
+line-height:1.05;
+margin-bottom:12px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+'>
+GESTÃO DE ATIVIDADES
+</div>
+
+<!-- KPIs SUPERIORES -->
+<div style='
+display:flex;
+gap:24px;
+margin-bottom:12px;
+'>
+
+<!-- KPI CONCLUSAO -->
+<div style='flex:1;'>
+
+<div style='
+font-size:12px;
+opacity:.72;
+margin-bottom:4px;
+'>
+Taxa Conclusão
+</div>
+
+<div style='
+font-size:20px;
+font-weight:700;
+line-height:1;
+'>
+" & Conclusao & "
+</div>
+
+</div>
+
+<!-- KPI BACKLOG -->
+<div style='flex:1;'>
+
+<div style='
+font-size:12px;
+opacity:.72;
+margin-bottom:4px;
+'>
+Backlog Atual
+</div>
+
+<div style='
+font-size:20px;
+font-weight:700;
+line-height:1;
+'>
+" & Backlog & "
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ========================= -->
+<!-- BLOCOS INFERIORES -->
+<!-- ========================= -->
+
+<div style='
+display:flex;
+flex-direction:column;
+gap:10px;
+'>
+
+<!-- TOTAL -->
+<div style='
+
+padding:10px 14px;
+
+background:
+linear-gradient(
+90deg,
+rgba(255,255,255,.12),
+rgba(255,255,255,.06)
+);
+
+border-radius:14px;
+
+font-size:14px;
+line-height:1.2;
+
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+
+'>
+
+Total de atividades <b>" & Total & "</b>
+
+&nbsp; | &nbsp;
+
+Concluídas <b>" & Concluidas & "</b>
+
+</div>
+
+<!-- INTERNO -->
+<div style='
+
+padding:10px 14px;
+
+background:
+linear-gradient(
+90deg,
+rgba(255,255,255,.12),
+rgba(255,255,255,.06)
+);
+
+border-radius:14px;
+
+font-size:14px;
+line-height:1.2;
+
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+
+'>
+
+Cliente Interno <b>" & ClienteInterno & "</b>
+
+&nbsp; | &nbsp;
+
+Concluídas <b>" & IntConcluidas & "</b>
+
+</div>
+
+<!-- EXTERNO -->
+<div style='
+
+padding:10px 14px;
+
+background:
+linear-gradient(
+90deg,
+rgba(255,255,255,.12),
+rgba(255,255,255,.06)
+);
+
+border-radius:14px;
+
+font-size:14px;
+line-height:1.2;
+
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+
+'>
+
+Cliente Externo <b>" & ClienteExterno & "</b>
+
+&nbsp; | &nbsp;
+
+Concluídas <b>" & ExtConcluidas & "</b>
+
+</div>
+
+<!-- AGING -->
+<div style='
+
+padding:10px 14px;
+
+background:
+linear-gradient(
+90deg,
+rgba(255,255,255,.12),
+rgba(255,255,255,.06)
+);
+
+border-radius:14px;
+
+font-size:14px;
+line-height:1.2;
+
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+
+'>
+
+Tempo médio conclusão <b>" & Aging & " dias</b>
+
+</div>
+
+</div>
+
+</div>
+"

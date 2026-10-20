@@ -1,0 +1,275 @@
+// Medidas de suporte ao layout. Uma expressão por vez.
+
+Total Atividades =
+CALCULATE(
+                        COUNT('tb.UNIFICADA CARDS'[id]))
+
+Atividades Concluídas =
+var concl = CALCULATE(
+    COUNTROWS('tb.UNIFICADA CARDS'),
+    'tb.UNIFICADA CARDS'[percentComplete] = "Concluída"
+)+0
+
+RETURN
+
+concl
+
+Atividades Em Andamento =
+CALCULATE(
+    COUNTROWS('tb.UNIFICADA CARDS'),
+    'tb.UNIFICADA CARDS'[percentComplete] ="Em andamento",
+        USERELATIONSHIP(Calendario[Date],'tb.UNIFICADA CARDS'[Data - createdDateTime]))
+
+Atividades Não Iniciadas =
+CALCULATE(
+    COUNTROWS('tb.UNIFICADA CARDS'),
+    'tb.UNIFICADA CARDS'[percentComplete] = "Não iniciado"
+        ,USERELATIONSHIP(Calendario[Date],'tb.UNIFICADA CARDS'[Data - createdDateTime])
+)
+
+% Conclusão =
+DIVIDE([Atividades Concluídas], [Total Atividades],0)
+
+% Em Andamento =
+DIVIDE([Atividades Em Andamento], [Total Atividades],0)
+
+% Não Iniciadas =
+DIVIDE([Atividades Não Iniciadas], [Total Atividades],0)
+
+Backlog Aberto =
+[Atividades Em Andamento] + [Atividades Não Iniciadas]
+
+% Backlog =
+DIVIDE([Backlog Aberto], [Total Atividades])
+
+Conclusão (dias) =
+AVERAGEX(
+    FILTER(
+        'tb.UNIFICADA CARDS',
+        'tb.UNIFICADA CARDS'[percentComplete] = "Concluída" &&
+        NOT(ISBLANK('tb.UNIFICADA CARDS'[completedDateTime]))
+    ),
+    DATEDIFF(
+        'tb.UNIFICADA CARDS'[createdDateTime],
+        'tb.UNIFICADA CARDS'[completedDateTime],
+        DAY
+    )
+)
+
+Cliente Interno =
+CALCULATE(
+    COUNTROWS('tb.UNIFICADA CARDS'),
+    'tb.UNIFICADA CARDS'[Categoria]="Interno")
+
+Cliente Externo =
+CALCULATE(
+    COUNTROWS('tb.UNIFICADA CARDS'),
+    'tb.UNIFICADA CARDS'[Categoria]="Externo"
+)
+
+Backlog Acumulado =
+CALCULATE(
+    [Backlog Aberto],
+    FILTER(
+        ALLSELECTED('tb.UNIFICADA CARDS'[createdDateTime]),
+        'tb.UNIFICADA CARDS'[createdDateTime] <= MAX('tb.UNIFICADA CARDS'[createdDateTime])
+    )
+)
+
+Produtividade Mensal =
+DIVIDE(
+    [Atividades Concluídas],
+    [Total Atividades]
+)
+
+Vs Mês Anterior =
+[Atividades Concluídas] -
+CALCULATE(
+    [Atividades Concluídas],
+    DATEADD('Calendario'[Date],-1,MONTH)
+)
+
+Indicador Selecionado =
+SWITCH(
+    SELECTEDVALUE(Menu_Status[Indicador], "Concluídas"),
+
+    "Total", [Total Atividades],
+    "Em andamento", [Atividades Em Andamento],
+    "Não iniciado", [Atividades Não Iniciadas],
+    "Concluídas", [Atividades Concluídas],
+    "Taxa de Conclusão", [% Conclusão],
+
+    [Atividades Concluídas]
+)
+
+Conclusão (dias) f =
+FORMAT(AVERAGEX(
+    FILTER(
+        'tb.UNIFICADA CARDS',
+        'tb.UNIFICADA CARDS'[percentComplete] = "Concluída" &&
+        NOT(ISBLANK('tb.UNIFICADA CARDS'[completedDateTime]))
+    ),
+    DATEDIFF(
+        'tb.UNIFICADA CARDS'[createdDateTime],
+        'tb.UNIFICADA CARDS'[completedDateTime],
+        DAY
+    )
+),"##")
+
+SubtituloGrafico =
+VAR Indicador =
+    SELECTEDVALUE(Menu_Status[Indicador], "Concluídas")
+
+VAR ROTA = 
+SWITCH(
+    TRUE(), 
+        SELECTEDVALUE('Parâmetro'[Parâmetro Pedido])=0,"TOTAL DE ATIVIDADES POR BOARD",
+        SELECTEDVALUE('Parâmetro'[Parâmetro Pedido])=1,"TOTAL DE ATIVIDADES POR CATEGORIA",
+        SELECTEDVALUE('Parâmetro'[Parâmetro Pedido])=2,"TOTAL DE ATIVIDADES POR SOLICITANTE",
+        SELECTEDVALUE('Parâmetro'[Parâmetro Pedido])=3,"TOTAL DE ATIVIDADES POR TIPO")
+
+RETURN
+
+SWITCH(
+    Indicador,
+    "Total", ROTA,
+    "Em andamento", ROTA,
+    "Não iniciado", ROTA,
+    "Concluídas",ROTA,
+    "Taxa de Conclusão", ROTA,
+    "ATIVIDADES CONCLUÍDAS POR BOARD"
+)
+
+STATUS TABELA =
+VAR EhChecklist =
+    ISINSCOPE(
+        'tb.UNIFICADA CHECKLIST'[Checklist.title]
+    )
+
+VAR StatusChecklist =
+    SELECTEDVALUE(
+        'tb.UNIFICADA CHECKLIST'[Checklist.isChecked]
+    )
+
+VAR StatusCard =
+    SELECTEDVALUE(
+        'tb.UNIFICADA CARDS'[percentComplete]
+    )
+
+RETURN
+IF(
+    EhChecklist,
+    StatusChecklist,
+    StatusCard
+)
+
+% Conclusão Checklist Num =
+VAR qtd_checklist =
+    COUNT('tb.UNIFICADA CHECKLIST'[id_checklist])
+
+VAR qtd_checklist_concluido =
+    CALCULATE(
+        COUNT('tb.UNIFICADA CHECKLIST'[id_checklist]),
+        'tb.UNIFICADA CHECKLIST'[Checklist.isChecked] = "Concluído"
+    )
+
+RETURN
+    DIVIDE(
+        qtd_checklist_concluido,
+        qtd_checklist,
+        0
+    )
+
+Cor % Conclusão Checklist =
+VAR Pct =
+    [% Conclusão Checklist Num]
+
+RETURN
+IF(
+    ISBLANK(Pct),
+    BLANK(),
+    SWITCH(
+        TRUE(),
+        Pct >= 1, "#08DE17",
+        Pct >= 0.75, "#34D399",
+        Pct >= 0.50, "#2B838C",
+        Pct > 0, "#1D535F",
+        "#081120"
+    )
+)
+
+Ciclo =
+VAR CardID =
+    SELECTEDVALUE(
+        'tb.UNIFICADA CARDS'[id]
+    )
+
+VAR EhChecklist =
+    ISINSCOPE(
+        'tb.UNIFICADA CHECKLIST'[Checklist.title]
+    )
+
+VAR DataCriacao =
+    MAXX(
+        FILTER(
+            ALL('tb.UNIFICADA CARDS'),
+            'tb.UNIFICADA CARDS'[id] = CardID
+        ),
+        'tb.UNIFICADA CARDS'[createdDateTime]
+    )
+
+VAR DataConclusao =
+    MAXX(
+        FILTER(
+            ALL('tb.UNIFICADA CARDS'),
+            'tb.UNIFICADA CARDS'[id] = CardID
+        ),
+        'tb.UNIFICADA CARDS'[completedDateTime]
+    )
+
+VAR Minutos =
+    IF(
+        NOT ISBLANK(CardID)
+            && NOT ISBLANK(DataCriacao)
+            && NOT ISBLANK(DataConclusao),
+        DATEDIFF(
+            DataCriacao,
+            DataConclusao,
+            MINUTE
+        )
+    )
+
+RETURN
+SWITCH(
+    TRUE(),
+
+    /* LINHA DE CHECKLIST: NÃO CALCULA CICLO */
+    EhChecklist,
+        BLANK(),
+
+    /* SEM CARD ID: NÃO CALCULA */
+    ISBLANK(CardID),
+        BLANK(),
+
+    /* CARD SEM DATA DE CONCLUSÃO */
+    ISBLANK(DataConclusao),
+        "-",
+
+    /* CICLO DO CARD ESPECÍFICO */
+    Minutos < 60,
+        Minutos & " min",
+
+    Minutos < 1440,
+        FORMAT(
+            DIVIDE(Minutos,60),
+            "0.0"
+        ) & " h",
+
+    FORMAT(
+        DIVIDE(Minutos,1440),
+        "0.0"
+    ) & " d"
+)
+
+Última Atualização Realizada =
+SELECTEDVALUE('Atualização'[Data e hora])
