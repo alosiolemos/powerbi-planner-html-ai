@@ -25,6 +25,14 @@ flowchart LR
 
 O caminho Gemini documenta a implementação histórica. A chave real foi retirada; a interface não está conectada na distribuição pública.
 
+## Telas
+
+Capturas do painel desenvolvido, disponibilizadas para apresentar a experiência visual do projeto.
+
+<img width="1445" height="805" alt="01-visao-geral" src="https://github.com/user-attachments/assets/424bdbda-a767-4095-a654-70a68de45a61" />
+
+<img width="1042" height="716" alt="02-interface-ia" src="https://github.com/user-attachments/assets/561a6c19-a954-46bc-8149-219bb7856ea2" />
+
 ## Conteúdo disponível
 
 - **Oito medidas HTML completas**, revisadas para publicação.
@@ -49,7 +57,7 @@ O caminho Gemini documenta a implementação histórica. A chave real foi retira
 
 O inventário do relatório identificou oito visuais HTML Content, um gráfico de rosca nativo, tabela/matriz, segmentadores, imagem e formas. Portanto, este case tem **interface majoritariamente personalizada com HTML**, e não um relatório integralmente HTML.
 
-As capturas do painel demonstram a experiência que desenvolvi, mas não incluí as versões originais no repositório porque contêm solicitações e informações internas.
+As capturas na seção Telas apresentam a experiência que desenvolvi. O código disponibilizado e a interface de IA da distribuição pública mantêm os limites descritos neste case.
 
 ## Indicadores
 
